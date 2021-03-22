@@ -1,7 +1,5 @@
-import string
-import sys
 import os
-
+import string
 
 TYPE_NAME = 0
 TYPE_RESERVED = 1
