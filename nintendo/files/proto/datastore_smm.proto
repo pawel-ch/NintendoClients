@@ -3,9 +3,11 @@ import datastore;
 
 protocol DataStore_SMM : DataStore {
 	method(61) get_application_config(uint32 id) {
-		list<uint32> config;
+		list<sint32> config;
 	}
-	
+
+	method(62) set_application_config(uint32 id, uint32 key, uint32 value) {}
+
 	method(74) get_application_config_string(uint32 id) {
 		list<string> config;
 	}

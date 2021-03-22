@@ -1402,6 +1402,7 @@ class DataStoreTouchObjectParam(common.Structure):
 
 class DataStoreProtocolSMM:
     METHOD_GET_APPLICATION_CONFIG = 61
+    METHOD_SET_APPLICATION_CONFIG = 62
     METHOD_GET_APPLICATION_CONFIG_STRING = 74
     METHOD_PREPARE_GET_OBJECT_V1 = 1
     METHOD_PREPARE_POST_OBJECT_V1 = 2
@@ -1469,7 +1470,7 @@ class DataStoreClientSMM(DataStoreProtocolSMM):
 
         # --- response ---
         stream = streams.StreamIn(data, self.settings)
-        config = stream.list(stream.u32)
+        config = stream.list(stream.s32)
         if not stream.eof():
             raise ValueError(
                 "Response is bigger than expected (got %i bytes, but only %i were read)"
@@ -1477,6 +1478,26 @@ class DataStoreClientSMM(DataStoreProtocolSMM):
             )
         logger.info("DataStoreClientSMM.get_application_config -> done")
         return config
+
+    async def set_application_config(self, id, key, value):
+        logger.info("DataStoreClientSMM.set_application_config()")
+        # --- request ---
+        stream = streams.StreamOut(self.settings)
+        stream.u32(id)
+        stream.u32(key)
+        stream.u32(value)
+        data = await self.client.request(
+            self.PROTOCOL_ID, self.METHOD_SET_APPLICATION_CONFIG, stream.get()
+        )
+
+        # --- response ---
+        stream = streams.StreamIn(data, self.settings)
+        if not stream.eof():
+            raise ValueError(
+                "Response is bigger than expected (got %i bytes, but only %i were read)"
+                % (stream.size(), stream.tell())
+            )
+        logger.info("DataStoreClientSMM.set_application_config -> done")
 
     async def get_application_config_string(self, id):
         logger.info("DataStoreClientSMM.get_application_config_string()")
@@ -2460,6 +2481,7 @@ class DataStoreServerSMM(DataStoreProtocolSMM):
     def __init__(self):
         self.methods = {
             self.METHOD_GET_APPLICATION_CONFIG: self.handle_get_application_config,
+            self.METHOD_SET_APPLICATION_CONFIG: self.handle_set_application_config,
             self.METHOD_GET_APPLICATION_CONFIG_STRING: self.handle_get_application_config_string,
             self.METHOD_PREPARE_GET_OBJECT_V1: self.handle_prepare_get_object_v1,
             self.METHOD_PREPARE_POST_OBJECT_V1: self.handle_prepare_post_object_v1,
@@ -2525,7 +2547,15 @@ class DataStoreServerSMM(DataStoreProtocolSMM):
         # --- response ---
         if not isinstance(response, list):
             raise RuntimeError("Expected list, got %s" % response.__class__.__name__)
-        output.list(response, output.u32)
+        output.list(response, output.s32)
+
+    async def handle_set_application_config(self, client, input, output):
+        logger.info("DataStoreServerSMM.set_application_config()")
+        # --- request ---
+        id = input.u32()
+        key = input.u32()
+        value = input.u32()
+        await self.set_application_config(client, id, key, value)
 
     async def handle_get_application_config_string(self, client, input, output):
         logger.info("DataStoreServerSMM.get_application_config_string()")
@@ -3129,6 +3159,10 @@ class DataStoreServerSMM(DataStoreProtocolSMM):
 
     async def get_application_config(self, *args):
         logger.warning("DataStoreServerSMM.get_application_config not implemented")
+        raise common.RMCError("Core::NotImplemented")
+
+    async def set_application_config(self, *args):
+        logger.warning("DataStoreServerSMM.set_application_config not implemented")
         raise common.RMCError("Core::NotImplemented")
 
     async def get_application_config_string(self, *args):

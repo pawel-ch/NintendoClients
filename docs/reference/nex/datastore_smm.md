@@ -260,6 +260,9 @@ Provides a client and server for the `DataStoreProtocolSMM`. This page was gener
 <code>**async def get_application_config**(id: int) -> list[int]</code><br>
 <span class="docs">Calls method `61` on the server.</span>
 
+<code>**async def set_application_config**(id: int, key: int, value: int) -> None</code><br>
+<span class="docs">Calls method `62` on the server.</span>
+
 <code>**async def get_application_config_string**(id: int) -> list[str]</code><br>
 <span class="docs">Calls method `74` on the server.</span>
 
@@ -467,6 +470,9 @@ Provides a client and server for the `DataStoreProtocolSMM`. This page was gener
 
 <code>**async def get_application_config**(client: [RMCClient](../rmc#rmcclient), id: int) -> list[int]</code><br>
 <span class="docs">Handler for method `61`. This method should be overridden by a subclass.</span>
+
+<code>**async def set_application_config**(client: [RMCClient](../rmc#rmcclient), id: int, key: int, value: int) -> None</code><br>
+<span class="docs">Handler for method `62`. This method should be overridden by a subclass.</span>
 
 <code>**async def get_application_config_string**(client: [RMCClient](../rmc#rmcclient), id: int) -> list[str]</code><br>
 <span class="docs">Handler for method `74`. This method should be overridden by a subclass.</span>
